@@ -1,0 +1,3 @@
+client_id="bto-wdvgCtYcSiM4hw1KKg",
+client_secret="9ARNN0jHXRitVgn7IX4FWJvP1murhQ",
+user_agent="MarketSentimentBot by /u/OkraSuspicious8725"

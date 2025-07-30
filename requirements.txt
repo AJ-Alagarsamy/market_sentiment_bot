@@ -6,3 +6,4 @@ praw
 python-dotenv
 textblob
 colorama
+feedparser
