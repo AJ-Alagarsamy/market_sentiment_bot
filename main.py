@@ -120,9 +120,21 @@ def run_sentiment_bot(ticker="AAPL"):
 
     # Overall
     overall_score = int(
-        (reddit_score + yahoo_score + finviz_score + cnbc_score + google_score) / 5
+        (.1*reddit_score + .15*yahoo_score + .15*finviz_score + .3*cnbc_score + .3*google_score)
     )
-    print(f"Overall Market Sentiment Score (1=Sell, 100=Buy): {overall_score}\n")
+    print(f"Overall Market Sentiment Score (1=Sell, 100=Buy): {overall_score}")
+
+    # Recommendation based on score
+    if overall_score >= 75:
+        print(Fore.GREEN + "STRONG BUY")
+    elif overall_score >= 55:
+        print(Fore.GREEN + "BUY")
+    elif overall_score >= 45:
+        print(Fore.YELLOW + "HOLD")
+    elif overall_score >= 37:
+        print(Fore.RED + "SELL")
+    else:
+        print(Fore.RED + "STRONG SELL")
 
 if __name__ == "__main__":
     ticker = input("Enter a stock ticker (default: AAPL): ").strip().upper() or "AAPL"

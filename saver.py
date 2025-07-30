@@ -3,8 +3,9 @@ load_dotenv()
 
 from scraper_reddit import get_reddit_posts
 from scraper_yahoo import get_yahoo_finance_headlines
-from scraper_cnbc import get_cnbc_headlines
 from scraper_finviz import get_finviz_headlines
+from scraper_cnbc import get_cnbc_headlines
+from scraper_google_news import get_google_news_headlines
 from analyzer import analyze_sentiment, compute_score
 from colorama import Fore, Style, init
 
@@ -42,9 +43,9 @@ def run_sentiment_bot(ticker="AAPL"):
     all_reddit_posts = []
     all_reddit_sentiments = []
 
-    # Reddit posts
+    # Reddit
     for subreddit in SUBREDDITS:
-        print(f"\nFetching Reddit posts from r/{subreddit} mentioning '{ticker}'...")
+        print(f"\nFetching Reddit posts from r/{subreddit} that mention '{ticker}'...")
         reddit_posts = get_reddit_posts(subreddit=subreddit, limit=10, ticker=ticker)
         reddit_sentiments = [analyze_sentiment(post[0]) for post in reddit_posts]
 
@@ -65,10 +66,10 @@ def run_sentiment_bot(ticker="AAPL"):
     summarize_sentiment(all_reddit_sentiments)
     print(f"Reddit Buy/Sell Score (1=Sell, 100=Buy): {reddit_score}\n")
 
-    # Yahoo Finance
+    # Yahoo
     print("Fetching Yahoo Finance headlines...")
     yahoo_headlines = get_yahoo_finance_headlines(ticker)
-    yahoo_sentiments = [analyze_sentiment(h) for h in yahoo_headlines]
+    yahoo_sentiments = [analyze_sentiment(headline) for headline in yahoo_headlines]
 
     print(f"\nYahoo Finance headlines for {ticker}:")
     for headline, sentiment in zip(yahoo_headlines, yahoo_sentiments):
@@ -78,23 +79,10 @@ def run_sentiment_bot(ticker="AAPL"):
     yahoo_score = compute_score(combined_yahoo_text) if combined_yahoo_text else 50
     print(f"Yahoo Finance Buy/Sell Score (1=Sell, 100=Buy): {yahoo_score}\n")
 
-    # CNBC
-    print("Fetching CNBC headlines...")
-    cnbc_headlines = get_cnbc_headlines(ticker)
-    cnbc_sentiments = [analyze_sentiment(h) for h in cnbc_headlines]
-
-    print(f"\nCNBC headlines for {ticker}:")
-    for headline, sentiment in zip(cnbc_headlines, cnbc_sentiments):
-        print(f"- {headline} - Sentiment: {color_sentiment(sentiment)}")
-
-    combined_cnbc_text = " ".join(cnbc_headlines) if cnbc_headlines else ""
-    cnbc_score = compute_score(combined_cnbc_text) if combined_cnbc_text else 50
-    print(f"CNBC Buy/Sell Score (1=Sell, 100=Buy): {cnbc_score}\n")
-
     # Finviz
     print("Fetching Finviz headlines...")
     finviz_headlines = get_finviz_headlines(ticker)
-    finviz_sentiments = [analyze_sentiment(h) for h in finviz_headlines]
+    finviz_sentiments = [analyze_sentiment(headline) for headline in finviz_headlines]
 
     print(f"\nFinviz headlines for {ticker}:")
     for headline, sentiment in zip(finviz_headlines, finviz_sentiments):
@@ -104,9 +92,35 @@ def run_sentiment_bot(ticker="AAPL"):
     finviz_score = compute_score(combined_finviz_text) if combined_finviz_text else 50
     print(f"Finviz Buy/Sell Score (1=Sell, 100=Buy): {finviz_score}\n")
 
-    # Overall score
+    # CNBC
+    print("Fetching CNBC headlines...")
+    cnbc_headlines = get_cnbc_headlines(ticker)
+    cnbc_sentiments = [analyze_sentiment(headline) for headline in cnbc_headlines]
+
+    print(f"\nCNBC headlines for {ticker}:")
+    for headline, sentiment in zip(cnbc_headlines, cnbc_sentiments):
+        print(f"- {headline} - Sentiment: {color_sentiment(sentiment)}")
+
+    combined_cnbc_text = " ".join(cnbc_headlines) if cnbc_headlines else ""
+    cnbc_score = compute_score(combined_cnbc_text) if combined_cnbc_text else 50
+    print(f"CNBC Buy/Sell Score (1=Sell, 100=Buy): {cnbc_score}\n")
+
+    # Google News
+    print("Fetching Google News headlines...")
+    google_headlines = get_google_news_headlines(ticker)
+    google_sentiments = [analyze_sentiment(headline) for headline in google_headlines]
+
+    print(f"\nGoogle News headlines for {ticker}:")
+    for headline, sentiment in zip(google_headlines, google_sentiments):
+        print(f"- {headline} - Sentiment: {color_sentiment(sentiment)}")
+
+    combined_google_text = " ".join(google_headlines) if google_headlines else ""
+    google_score = compute_score(combined_google_text) if combined_google_text else 50
+    print(f"Google News Buy/Sell Score (1=Sell, 100=Buy): {google_score}\n")
+
+    # Overall
     overall_score = int(
-        (reddit_score + yahoo_score + cnbc_score + finviz_score) / 4
+        (reddit_score + yahoo_score + finviz_score + cnbc_score + google_score) / 5
     )
     print(f"Overall Market Sentiment Score (1=Sell, 100=Buy): {overall_score}\n")
 
