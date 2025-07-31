@@ -7,7 +7,7 @@ reddit = praw.Reddit(
     user_agent="MarketSentimentBot by /u/OkraSuspicious8725"
 )
 
-def get_reddit_posts(subreddit, limit=1500, ticker=None):
+def get_reddit_posts(subreddit, limit=2500, ticker=None):
     """
     Fetch top 'limit' hot posts from the subreddit that mention the ticker.
     Only posts containing ticker or $ticker (case-insensitive) are included.

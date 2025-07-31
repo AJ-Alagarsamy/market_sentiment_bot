@@ -1,6 +1,6 @@
 import feedparser
 
-def get_google_news_headlines(ticker, limit=75):
+def get_google_news_headlines(ticker, limit=200):
     print(f"Fetching Google News headlines for {ticker} via RSS...")
     rss_url = f"https://news.google.com/rss/search?q={ticker}+when:7d&hl=en-US&gl=US&ceid=US:en"
 

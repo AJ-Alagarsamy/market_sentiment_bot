@@ -6,9 +6,9 @@ def analyze_sentiment(text):
     """
     blob = TextBlob(text)
     polarity = blob.sentiment.polarity
-    if polarity > 0.1:
+    if polarity > 0.051:
         return "positive"
-    elif polarity < -0.1:
+    elif polarity < -0.051:
         return "negative"
     else:
         return "neutral"

@@ -9,4 +9,5 @@ colorama
 feedparser
 transformers
 nltk
+yfinance
 tinydb

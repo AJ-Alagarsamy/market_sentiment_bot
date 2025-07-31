@@ -7,19 +7,25 @@ from scraper_finviz import get_finviz_headlines
 from scraper_cnbc import get_cnbc_headlines
 from scraper_google_news import get_google_news_headlines
 from analyzer import analyze_sentiment, compute_score
+from sentiment_model import get_trade_recommendation
 from colorama import Fore, Style, init
+import yfinance as yf
 
 init(autoreset=True)
 
 SUBREDDITS = [
-    "stocks",
-    "wallstreetbets",
-    "finance",
-    "economics",
-    "financenews",
-    "investing",
-    "stockmarket",
+    "stocks", "wallstreetbets", "finance", "economics",
+    "financenews", "investing", "stockmarket"
 ]
+
+def get_current_price(ticker):
+    try:
+        stock = yf.Ticker(ticker)
+        data = stock.history(period="1d")
+        return round(data["Close"].iloc[-1], 2)
+    except Exception as e:
+        print(f"[yfinance] Error fetching current price for {ticker}: {e}")
+        return None
 
 def summarize_sentiment(sentiments):
     positive = sum(1 for s in sentiments if s == "positive")
@@ -43,7 +49,6 @@ def run_sentiment_bot(ticker="AAPL"):
     all_reddit_posts = []
     all_reddit_sentiments = []
 
-    # Reddit
     for subreddit in SUBREDDITS:
         print(f"\nFetching Reddit posts from r/{subreddit} that mention '{ticker}'...")
         reddit_posts = get_reddit_posts(subreddit=subreddit, limit=10, ticker=ticker)
@@ -66,7 +71,6 @@ def run_sentiment_bot(ticker="AAPL"):
     summarize_sentiment(all_reddit_sentiments)
     print(f"Reddit Buy/Sell Score (1=Sell, 100=Buy): {reddit_score}\n")
 
-    # Yahoo
     print("Fetching Yahoo Finance headlines...")
     yahoo_headlines = get_yahoo_finance_headlines(ticker)
     yahoo_sentiments = [analyze_sentiment(headline) for headline in yahoo_headlines]
@@ -79,7 +83,6 @@ def run_sentiment_bot(ticker="AAPL"):
     yahoo_score = compute_score(combined_yahoo_text) if combined_yahoo_text else 50
     print(f"Yahoo Finance Buy/Sell Score (1=Sell, 100=Buy): {yahoo_score}\n")
 
-    # Finviz
     print("Fetching Finviz headlines...")
     finviz_headlines = get_finviz_headlines(ticker)
     finviz_sentiments = [analyze_sentiment(headline) for headline in finviz_headlines]
@@ -92,7 +95,6 @@ def run_sentiment_bot(ticker="AAPL"):
     finviz_score = compute_score(combined_finviz_text) if combined_finviz_text else 50
     print(f"Finviz Buy/Sell Score (1=Sell, 100=Buy): {finviz_score}\n")
 
-    # CNBC
     print("Fetching CNBC headlines...")
     cnbc_headlines = get_cnbc_headlines(ticker)
     cnbc_sentiments = [analyze_sentiment(headline) for headline in cnbc_headlines]
@@ -105,7 +107,6 @@ def run_sentiment_bot(ticker="AAPL"):
     cnbc_score = compute_score(combined_cnbc_text) if combined_cnbc_text else 50
     print(f"CNBC Buy/Sell Score (1=Sell, 100=Buy): {cnbc_score}\n")
 
-    # Google News
     print("Fetching Google News headlines...")
     google_headlines = get_google_news_headlines(ticker)
     google_sentiments = [analyze_sentiment(headline) for headline in google_headlines]
@@ -118,23 +119,31 @@ def run_sentiment_bot(ticker="AAPL"):
     google_score = compute_score(combined_google_text) if combined_google_text else 50
     print(f"Google News Buy/Sell Score (1=Sell, 100=Buy): {google_score}\n")
 
-    # Overall
     overall_score = int(
-        (.1*reddit_score + .15*yahoo_score + .15*finviz_score + .3*cnbc_score + .3*google_score)
+        (.05*reddit_score + .25*yahoo_score + .1*finviz_score + .2*cnbc_score + .4*google_score)
     )
-    print(f"Overall Market Sentiment Score (1=Sell, 100=Buy): {overall_score}")
+    print(f"Overall Market Sentiment Score (1=Sell, 100=Buy): {overall_score}\n")
 
-    # Recommendation based on score
-    if overall_score >= 75:
-        print(Fore.GREEN + "STRONG BUY")
-    elif overall_score >= 55:
-        print(Fore.GREEN + "BUY")
-    elif overall_score >= 45:
-        print(Fore.YELLOW + "HOLD")
-    elif overall_score >= 37:
-        print(Fore.RED + "SELL")
+    current_price = get_current_price(ticker)
+    if current_price is not None:
+        recommendation = get_trade_recommendation(ticker, overall_score)
+        print(f"Trade Recommendation:")
+        print(f"Sentiment Label: {recommendation.get('label', 'N/A')}")
+
+        expected_return = recommendation.get('expected_return')
+        confidence = recommendation.get('confidence')
+
+        if recommendation.get('label', '').lower() == 'buy' and expected_return is not None:
+            target_price = round(current_price * (1 + expected_return / 100), 2)
+            stop_loss_price = round(current_price * 0.98, 2)
+
+            print(f"Buy at: ${current_price}")
+            print(f"Target Price: ${target_price}")
+            print(f"Stop-Loss: ${stop_loss_price}")
+        else:
+            print("No actionable trade recommendation at this time.")
     else:
-        print(Fore.RED + "STRONG SELL")
+        print("[!] Could not fetch current price. Skipping trade recommendation.")
 
 if __name__ == "__main__":
     ticker = input("Enter a stock ticker (default: AAPL): ").strip().upper() or "AAPL"

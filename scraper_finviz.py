@@ -16,7 +16,7 @@ def get_finviz_headlines(ticker):
         rows = news_table.find_all("tr")
 
         headlines = [row.a.get_text(strip=True) for row in rows if row.a]
-        return headlines[:10]  # limit to 10
+        return headlines[:55]  # limit to 55
     except Exception as e:
         print(f"[Finviz] Failed to fetch headlines: {e}")
         return []
